@@ -1,0 +1,71 @@
+---
+catalog-name: cdl_ps_dev
+schema-name: silver_ps_transfix_na
+rds-schema-name: bronze_rds
+g11_db_name: silver_sap_h1p_104
+vsbltbw-schema-name: dp_trans_vsblt_bw
+
+region-schema-name:
+N6P: silver_sap_n6p_rt
+
+tenant-id: 3596192b-fdf5-4e2c-a6fa-acb706c963d8 #P&G Azure Tenant
+cdl-metadata:
+  # metadata-api config
+  api-url: https://api-nonprod.pgcloud.com/othersupportingdata/it/v1/metadata-bf
+  #todo: replace with the proper azure key-vault and secret name
+  api-app-id: '{{secrets/kv-productsupply-tw-n101/client-id-SP-cdl-turbine-frontend-meta-api-id}}'
+  sp-app-id: '{{secrets/kv-productsupply-tw-n101/client-id-0058b39e-da91-435d-8e33-59d807796175}}'
+  sp-secret: '{{secrets/kv-productsupply-tw-n101/client-secret-0058b39e-da91-435d-8e33-59d807796175}}'
+  logical-layer-app-name: pg_tw_fa_transfix_na
+  data-layer-app-name: pg_tw_fa_transfix_na silver_ps_transfix_na
+  data-provider-code: #todo: set the data provider code
+
+storage:
+  account-name: source_storage_name
+  container-name: pg_tw_fa_transfix_na
+tables:
+- logical-name: silver_ps_transfix_na_tablename
+  destination-path: silver_ps_transfix_na_tablename
+  unity-catalog-table-name: "carrier"
+  data-signal-keys: [ "super-fast-carrier", ]  # it can be either key or string
+  data-type-code: "faaaast"
+  cust_hierarchy656_na_lkp = "cust_hierarchy656_na_lkp"
+  cust_na_dim = "cust_na_dim"
+  plant_na_dim = "plant_na_dim"
+  prod1_na_dim = "prod1_na_dim"
+  sales_org_na_dim = "sales_org_na_dim"
+  shipping_point_na_dim = "shipping_point_na_dim"
+  storage_location_na_dim = "storage_location_na_dim"
+  vendor_na_dim = "vendor_na_dim"
+  tac_technical_name_star = "tac_technical_name_star"
+  tfs_technical_name_star = "tfs_technical_name_star"
+  tac_tender_star = "tac_tender_star"
+  tac_tender_summary_star = "tac_tender_summary_star"
+  tfs_acsrl_star = "tfs_acsrl_star"
+  tfs_subsector_cost_star = "tfs_subsector_cost_star"
+  on_time_data_hub_star = "on_time_data_hub_star"
+  vfr_data_hub_star = "vfr_data_hub_star"
+  fap_star = "fap_star"
+  lot_star = "lot_star"
+  rgvr_star = "rgvr_star"
+  csot_star = "csot_star"
+  iot_star = "iot_star"
+  tac_shpmt_detail_star = "tac_shpmt_detail_star"
+  tac_lane_detail_starm = "tac_lane_detail_starm"
+  destination_channel_customer_lkp = "destination_channel_customer_lkp"
+  on_time_codes_aot_reason_lkp = "on_time_codes_aot_reason_lkp"
+  origin_gbu_lkp = "origin_gbu_lkp"
+  ship_to_pgp_flag_lkp = "ship_to_pgp_flag_lkp"
+  vfr_load_agg_star = "vfr_load_agg_star"
+  weekly_network_sccrd_star = "weekly_network_sccrd_star"
+  weekly_network_sccrd_agg_star = "weekly_network_sccrd_agg_star"
+  
+
+RDS_tables:
+  cust_hier_dim(cst_656): "cust_hier_dim"
+  exchg_rate_fct: "exchg_rate_fct"
+  cust_dim: "cust_dim"
+  trade_chanl_hier_dim: "trade_chanl_hier_dim"
+
+
+
