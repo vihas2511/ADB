@@ -1,0 +1,185 @@
+import sys
+sys.path.append('/dbfs/mnt/{}/etl/shared/prod/code/python'.format(adls))
+sys.path.append('/dbfs/mnt/{}/etl/transfix/code/python'.format(adls))
+import utils
+from datetime import datetime
+import time as tm  
+
+
+def main_argparse(args_lst):
+    ''' Parse input parameters '''
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--config_module", required=True)
+    parser.add_argument("-s", "--step_no", required=False)
+    args = parser.parse_args(args=args_lst)
+    return args
+
+
+def execute_transfix_hive_scripts(logging, spark_session, params, step_no='0'):
+    import run_spark_sql as r
+    param_dict = params.HIVE_PARAMETERS
+    #Get an ordered list of script
+    hqls_list = r.get_hqls(spark_session, params.HIVE_SCRIPT_DIR_PATH).collect()
+    if step_no == '0':
+        for hfile in params.HQLS_ORDERED_LIST.values():
+            logging.info("Executing {} script".format(hfile))
+            for hscript in hqls_list:
+                print("hfile={}".format(hfile))
+                print("hscript0={}".format(hscript[0]))
+                if hfile in hscript[0]:
+                    r.execute_hql_script(logging, spark_session, hscript[1], param_dict)
+    else:
+        hfile = params.HQLS_ORDERED_LIST[step_no]
+        logging.info("Executing {} script".format(hfile))
+        for hscript in hqls_list:
+            if hfile in hscript[0]:
+                r.execute_hql_script(logging, spark_session, hscript[1], param_dict)
+                logging.info("Executing {} script has finished".format(hfile))
+
+
+def main(args_lst):
+    ''' Main '''
+
+    # error codes for the metadata 
+    customer_hier656, cust_na_dim = 0, 0
+    plant, product1 = 0, 0
+    sales_org_na_dim, shipping_point = 0, 0
+    storage_location, vendor = 0, 0
+    api_fails = []
+
+    try:
+        import logging
+        #get parameters
+        args = main_argparse(args_lst)
+        logging.basicConfig(
+                stream=sys.stderr,
+                level=logging.INFO,
+                format='%(levelname)s %(asctime)s %(funcName)s %(message)s',
+                datefmt='%m/%d/%Y %I:%M:%S %p')
+        logging.info("Input param: config_module = {}".format(args.config_module))
+        logging.info("Input param: step_no       = {}".format(args.step_no))
+        logging.getLogger("py4j").setLevel(logging.ERROR) 
+        #Load config module
+        params = utils.ConfParams.build_from_module(
+                logging, args.config_module, 0, "")
+
+        #Create a spark session
+        spark_session = utils.get_spark_session(
+                logging, 'transfix', 'yarn', []
+                )
+        #spark_session.conf.set("spark.sql.autoBroadcastJoinThreshold", -1)
+        #spark_session.sql("SET hive.exec.dynamic.partition=true")
+        #spark_session.sql("SET hive.exec.dynamic.partition.mode=nonstrict")
+
+        start_tm = tm.time()
+        load_start_utc_tmstp = datetime.now().strftime('%Y%m%d%H%M%S')
+
+        #Execute hive script from HDFS
+        execute_transfix_hive_scripts(logging, spark_session, params, args.step_no)
+
+
+        load_end_utc_tmstp = datetime.now().strftime('%Y%m%d%H%M%S')
+        end_tm = tm.time()
+        load_duration_seconds_cnt = int(end_tm-start_tm)
+        load_method_name          = 'spark.read.parquet().write.mode(overwrite).parquet()'
+        load_std_log_text         = '' 
+        table_disk_size_mb_cnt    = ''
+        tbl_name                  = tbl_list[args.step_no]
+        create_by_user_name       = getpass.getuser()
+        dest_path                  = '/mnt/dppsdatahubx45bab07e/lightrefined/transfix/prod/final/{}'.format(tbl_name)
+        src_path                  = ''
+        create_on_host_name       = socket.gethostname()
+        load_to_plc_table(db_name, tbl_list[args.step_no], load_start_utc_tmstp, load_end_utc_tmstp, load_duration_seconds_cnt, load_method_name, 
+                              src_path, dest_path, load_std_log_text, table_disk_size_mb_cnt,create_by_user_name, create_on_host_name)
+        logging.info("execution ended")
+        
+        # 
+        # Metadata part for dimensions
+        # 
+        # from mdIntegration import md_integration_functions_transfix as mdi_exec, ps_mdi_transfix_config as conf
+        from mdIntegration import md_integration_functions_transfix as mdi_exec
+        from mdIntegration import transfix_config as conf
+         
+        if args.step_no == 'customer_hier656':
+            customer_hier656, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "CUST_HIERARCHY656_NA_LKP", '')
+ 
+            if customer_hier656 != 0:
+                mdi_exec.publish_execution_to_metadata(customer_hier656, api_fails)
+ 
+        elif args.step_no == 'customer':
+            cust_na_dim, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "CUST_NA_DIM", '')
+ 
+            if cust_na_dim != 0:
+                mdi_exec.publish_execution_to_metadata(cust_na_dim, api_fails)
+ 
+        elif args.step_no == 'plant':
+            plant, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "PLANT_NA_DIM", '')
+ 
+            if plant != 0:
+                mdi_exec.publish_execution_to_metadata(plant, api_fails)
+ 
+        elif args.step_no == 'product1':
+            product1, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "PROD1_NA_DIM", '')
+ 
+            if product1 != 0:
+                mdi_exec.publish_execution_to_metadata(product1, api_fails)
+ 
+        elif args.step_no == 'sales_org':
+            sales_org_na_dim, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "SALES_ORG_NA_DIM", '')
+ 
+            if sales_org_na_dim != 0:
+                mdi_exec.publish_execution_to_metadata(sales_org_na_dim, api_fails)
+ 
+        elif args.step_no == 'shipping_point':
+            shipping_point, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "SHIPPING_POINT_NA_DIM", '')
+
+            if shipping_point != 0:
+                mdi_exec.publish_execution_to_metadata(shipping_point, api_fails)
+
+        elif args.step_no == 'storage_location':
+            storage_location, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "STORAGE_LOCATION_NA_DIM", '')
+
+            if storage_location != 0:
+                mdi_exec.publish_execution_to_metadata(storage_location, api_fails)
+
+        elif args.step_no == 'vendor': 
+            vendor, api_fails = mdi_exec.cdl_metadata_start_execution("Transfix", '', conf.CONTAINER_URL, conf.TABLE_PATH_PREFIX, "VENDOR_NA_DIM", '')
+
+            if vendor != 0:
+                mdi_exec.publish_execution_to_metadata(vendor, api_fails)
+
+        # end of metadata
+
+        
+    except Exception as exception:
+
+        # if datapipe fails, publish the failed run in the metadata      
+        api_fails.append(["Exception during datepipe Transfix, exception: {}".format(exception)])  
+
+        if customer_hier656 != 0:
+            mdi_exec.publish_execution_to_metadata(customer_hier656, api_fails)
+        if cust_na_dim != 0:
+            mdi_exec.publish_execution_to_metadata(cust_na_dim, api_fails)
+        if plant != 0:
+            mdi_exec.publish_execution_to_metadata(plant, api_fails)
+        if product1 != 0:
+            mdi_exec.publish_execution_to_metadata(product1, api_fails)
+        if sales_org_na_dim != 0:
+            mdi_exec.publish_execution_to_metadata(sales_org_na_dim, api_fails)
+        if shipping_point != 0:
+            mdi_exec.publish_execution_to_metadata(shipping_point, api_fails)
+        if storage_location != 0:
+            mdi_exec.publish_execution_to_metadata(storage_location, api_fails)
+        if vendor != 0:
+            mdi_exec.publish_execution_to_metadata(vendor, api_fails)
+
+        print("=" * 80)
+        print("exception: {} at {}".format(exception, datetime.now()))
+        logging.error(exception)
+        sys.stdout.flush()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main(args_lst)

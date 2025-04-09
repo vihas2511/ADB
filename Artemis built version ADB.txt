@@ -1,0 +1,142 @@
+import json
+import logging
+
+# import os
+import sys
+from datetime import date, datetime, timedelta
+
+# import numpy as np
+# import pandas as pd
+import pyspark.sql.functions as f
+from pg_composite_pipelines_configuration.configuration import Configuration
+from pyspark.sql.types import StringType, StructField, StructType
+
+from pg_tw_fa_artemis.common import get_dbutils, get_spark
+
+
+def main():
+
+    spark = get_spark()
+    dbutils = get_dbutils()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    args = sys.argv
+
+    workflowMode = args[1]
+    getdate = date.today()
+    adhocrundate = args[2]
+
+    config = Configuration.load_for_default_environment(__file__, dbutils)
+
+    # print(" Usage:{} processDate workflowMode maxDataDate".format())
+    logger.info("currentDate   - a current date (YYYY-MM-DD) on which process in run\n")
+    logger.info("workflowMode  - mode of the workflow run (normal/adhoc)\n")
+    logger.info(
+        "maxDataDate   - maximum date of data to process in YYYY-MM format (used sometimes with adhoc workflowMode)"
+    )
+
+    # initalize and validate variables
+    logger.info("Starting GO vs NO-GO decision making process...")
+
+    if workflowMode == "normal":
+        currentDate = datetime.strptime(str(getdate), "%Y-%m-%d")
+    else:
+        currentDate = datetime.strptime(str(adhocrundate), "%Y-%m-%d")
+
+    maxDataDate = ""  # used only for adhoc run
+    schedDesc = ""
+    schedDecision = ""
+    print(currentDate)
+    print(workflowMode)
+    if not workflowMode:
+        sys.exit("FAILED!!! WorkflowMode is missing")
+    if not currentDate:
+        sys.exit("FAILED!!! CurrentDate is missing")
+
+    processDate = currentDate
+
+    # Set the year of data to process
+    if not maxDataDate:  # normal run, not historical on demand
+        dataYear = processDate.year  # current year
+        dataMth = processDate.month - 1  # closed (previous) month
+        if dataMth == 0:
+            dataYear = dataYear - 1
+            dataMth = 12
+        dataMth = "%02d" % dataMth
+        maxDataYearMth = str(dataYear) + str(dataMth)
+        print(maxDataYearMth)
+    else:
+        dataYear = maxDataDate.year
+        dataMth = maxDataDate.month  # closed (previous) month
+        maxDataYearMth = str(dataYear) + str(dataMth)  # use the input value
+
+    # Verify whether we should run the process or not
+    if workflowMode.lower() == "adhoc":
+        schedDesc = "AdHoc run"
+        schedDecision = "run"
+    else:
+        print("Processed date: {}".format(processDate))
+        # Calculate 1st day of Month (YYYYMM01)
+        beginMthDate = datetime.strptime(processDate.strftime("%Y%m01"), "%Y%m%d")
+        # Format current date (YYYYMMDD)
+        currentDate = datetime.strptime(processDate.strftime("%Y%m%d"), "%Y%m%d")
+        # Set current month as a number 1-12
+        currentMth = processDate.strftime("%-m")
+        # Set the day of week (1-7, 1 - is Monday)
+        currentWeekDayNmb = processDate.isoweekday()
+        # Get the number of days from begin of the month
+        diffDays = (currentDate - beginMthDate).days
+
+        workDayQty = 0
+        for n in range(diffDays, -1, -1):
+            # set processed date in a loop
+            loopProcessDate = (currentDate - timedelta(days=n)).strftime("%m%d")
+            # set day of week for processed date (1-7, 1 - is Monday, 4 - is a Thursday)
+            loopWeekDayNmb = (currentDate - timedelta(days=n)).isoweekday()
+            # count workdays
+            if not (
+                loopProcessDate == "0101"
+                or loopProcessDate == "0501"
+                or loopWeekDayNmb > 5
+            ):  # don't count 1st January, 1st May and weekends
+                workDayQty = workDayQty + 1
+        #       elif (loopProcessDate == '0101' and loopWeekDayNmb > 5 ): # when Jan 1 is on a weekend it generally goes to the following Monday as the P&G holiday
+        #         workDayQty=workDayQty-1 # holiday moved from weekend to normal day, subtract this day
+        #       elif (loopProcessDate == '0501' and loopWeekDayNmb > 5 ): # when May 1 is on a weekend it generally goes to the following Monday as the P&G holiday
+        #         workDayQty=workDayQty-1 # holiday moved from weekend to normal day, subtract this day
+        print("Number of workdays: {}".format(workDayQty))
+        if (
+            int(currentMth) > 0
+            and int(currentMth) < 13
+            and (workDayQty == 2 or workDayQty == 4)
+            and currentWeekDayNmb < 6
+        ):  # Monthly run on WD2 & WD4
+            schedDesc = "Monthly run"
+            schedDecision = "run"
+        else:
+            schedDesc = "No run"
+            schedDecision = "no_run"
+
+    print("CALC_SCHED_DESCRIPTION={}".format(schedDesc))
+    print("CALC_SCHED_DECISION={}".format(schedDecision))
+    print("CALC_DATA_YEAR_MTH={}".format(maxDataYearMth))
+
+    if schedDecision == "run":
+        print("Process started successfully")
+        dbutils.jobs.taskValues.set(key="run_date", value="yes")
+        dbutils.jobs.taskValues.set(key="processing_month", value=maxDataYearMth)
+    else:
+        print("Non Processing day")
+        dbutils.jobs.taskValues.set(key="run_date", value="no")
+
+
+if __name__ == "__main__":
+    # if you need to read params from your task/workflow, use sys.argv[] to retrieve them and pass them to main here
+    # eg sys.argv[0] for first positional param
+    main()
