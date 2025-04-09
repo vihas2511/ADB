@@ -1,0 +1,58 @@
+---
+catalog-name: cdl_ps_dev
+src-catalog-name: cdl_ps_prod
+g11_db_name: silver_sap_h1p_104
+schema-name: silver_ps_artemis
+rds-schema-name: bronze_rds
+tenant-id: 3596192b-fdf5-4e2c-a6fa-acb706c963d8 #P&G Azure Tenant
+
+sts: "https://login.microsoftonline.com/extSTS.srf"
+login: "/_forms/default.aspx?wa=wsignin1.0"
+
+volume-dir: "/Volumes/cdl_ps_dev/silver_ps_artemis/tw_fa_artemis_volume/dev"
+sharepoint-server: "https://pgone.sharepoint.com/"
+sharepoint-site-path: "sites/PSBigData"
+sharepoint-dir-path: "Hydra Uploads/Artemis Uploads"
+sharepoint-max-lvl: 4
+sharepoint-user: "apartemis.im@pg.com"
+
+domoclientid: "{{secrets/kv-productsupply-tw-n101/hydra-domo-client-id}}"
+domosecret: "{{secrets/kv-productsupply-tw-n101/hydra-domo-client-secret}}"
+
+databricks-secret-scope: "kv-productsupply-tw-n101"
+databricks-secret-key: "client-secret"
+retention: 36
+
+region-schema-name:
+  F6P: silver_sap_f6p
+  #N6P: silver_sap_n6p_rt
+  N6P: silver_sap_n6p
+  L6P: silver_sap_l6p
+  A6P: silver_sap_a6p
+  ANP: silver_sap_anp
+
+storage:
+  account-name: dnproductsupplyx61f18904
+  container-name: tw-fa-artemis
+  folder: tables/dev
+
+tables:
+  prod_alt_uom_sdim: "prod_alt_uom_sdim"
+  shpmt_alt_uom_sfct: "shpmt_alt_uom_sfct"
+  shpmt_sfct: "shpmt_sfct"
+  shpmt_report_star: "shpmt_report_star"
+  shpmt_vol_reconciliation_report_star: "shpmt_vol_reconciliation_report_star"
+  shpmt_vol_reconciliation_sstar: "shpmt_vol_reconciliation_sstar"
+  fincl_cc_lkp: "fincl_cc_lkp"
+  freight_type_lkp: "freight_type_lkp"
+  site_metadata_lkp: "site_metadata_lkp"
+
+rds_tables:
+  prod_dim: "prod_dim"
+  geo_hier_dim: "geo_hier_dim"
+  prod_hier_dim: "prod_hier_dim"
+
+sheet_name:
+  fincl_cc_slkp: "account#"
+  site_metadata_slkp: "MD overview"
+  freight_type_slkp: "ZVXX_TMS1_COSTAL"
