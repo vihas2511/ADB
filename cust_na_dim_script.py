@@ -1,0 +1,195 @@
+import logging
+import sys
+#change the config files accordingly 
+from pg_composite_pipelines_configuration.configuration import Configuration
+from pyspark.sql import SparkSession
+from pg_tw_fa_artemis.common import get_dbutils, get_spark
+
+def cust_na_dim(spark, logger, g11_db_name, target_db_name, target_table):
+    # Construct the query dynamically based on the parameters provided.
+    query = f"""
+    INSERT OVERWRITE TABLE {target_db_name}.cust_na_dim
+    SELECT
+        kna1.customer_id AS customer_number,
+        kna1.customer_account_group_code AS customer_account_group,
+        kna1.address_num AS address,
+        kna1.city_name AS city,
+        kna1.district_name AS district,
+        kna1.country_code AS country_key,
+        kna1.customer_class_code AS customer_classification,
+        kna1.fax_num AS fax_number,
+        kna1.fiscal_year_variant_code AS fiscal_year_variant,
+        kna1.tax3_num AS tax_number_3,
+        kna1.one_time_account_flag AS indicator_is_the_account_a_one_time_account,
+        kna1.industry_key_code AS industry_key,
+        kna1.industry2_code AS industry_code_2,
+        kna1.industry3_code AS industry_code_3,
+        kna1.industry4_code AS industry_code_4,
+        kna1.industry5_code AS industry_code_5,
+        kna1.lang_code AS language_key,
+        kna1.part1_name AS name_1_1,
+        kna1.part2_name AS name_2_1,
+        kna1.part3_name AS name_3_1,
+        kna1.nielsen_id,
+        kna1.company_id AS company_id_of_trading_partner,
+        kna1.tel_num AS first_telephone_number,
+        kna1.plant_id AS plant,
+        kna1.post_office_box_code AS po_box,
+        kna1.postal_code,
+        kna1.po_box_postal_code AS p_o_box_postal_code,
+        kna1.region_name AS region_state_province_county,
+        kna1.sort_field_name AS sort_field,
+        kna1.street_name AS house_number_and_street,
+        kna1.tax1_num AS tax_number_1,
+        kna1.tax2_num AS tax_number_2,
+        kna1.usage_code AS usage_indicator,
+        kna1.vendor_id AS account_number_of_vendor_or_creditor,
+        kna1.authrz_group_code AS authorization_group,
+        kna1.customer_central_dlvry_block_code AS central_delivery_block_for_the_customer,
+        kna1.county_code AS county_code,
+        kna1.sales_currency_code AS currency_of_sales_figure,
+        kna1.master_record_central_delete_flag AS central_deletion_flag_for_master_record,
+        kna1.fax_num AS fax_number,
+        kna1.title_name AS title_1,
+        kna1.legal_status_code AS legal_status,
+        kna1.part4_name AS name_4,
+        kna1.payment_block_flag AS payment_block,
+        kna1.tax_jrsdct_code AS tax_jurisdiction,
+        kna1.customer_central_order_block_code AS central_order_block_for_customer,
+        kna1.express_train_station_code AS express_train_station,
+        kna1.train_station_code AS train_station,
+        REGEXP_REPLACE(kna1.intl_loc_part1_num,'^0+$','') AS international_location_number_part_1,
+        REGEXP_REPLACE(kna1.intl_loc_part2_num,'^0+$','') AS international_location_number_part_2,
+        REGEXP_REPLACE(kna1.intl_loc_num_check_digit_val,'^0+$','') AS check_digit_for_the_international_location_number,
+        kna1.central_sales_block_customer_code AS central_sales_block_for_customer,
+        kna1.biochemical_warfare_legal_control_flag AS indicator_for_biochemical_warfare_for_legal_control,
+        kna1.nuclear_nonproliferation_legal_control_flag AS indicator_for_nuclear_nonproliferation_for_legal_control,
+        kna1.national_security_legal_control_flag AS indicator_for_national_security_for_legal_control,
+        kna1.missile_tech_legal_control_flag AS indicator_for_missile_technology_for_legal_control,
+        kna1.cfop_customer_categ_code AS customers_cfop_category,
+        kna1.non_military_use_flag AS id_for_mainly_non_military_use,
+        kna1.data_comm_line_num AS data_communication_line_no,
+        kna1.compttr_flag AS indicator_competitor,
+        kna1.sales_partner_flag AS indicator_sales_partner,
+        kna1.sales_prospect_code AS indicator_sales_prospect,
+        kna1.customer_type_4_flag AS indicator_for_customer_type_4,
+        kna1.default_sold_to_party_id_flag AS id_for_default_sold_to_party,
+        kna1.consumer_flag AS indicator_consumer,
+        kna1.data_medium_exchange_code AS indicator_for_data_medium_exchange,
+        kna1.subseq_release_status_data_transfer_code AS status_of_data_transfer_into_subsequent_release,
+        kna1.initial_contact_code AS initial_contact,
+        FROM_UNIXTIME(UNIX_TIMESTAMP(kna1.create_date,'yyyyMMdd'),'dd.MM.yyyy') AS date_on_which_the_record_was_created,
+        kna1.create_by_user_name AS name_of_person_who_created_the_object,
+        kna1.is_r_customer_plant_group_code AS is_r_labeling_customer_plant_group,
+        kna1.unload_point_exist_flag AS indicator_unloading_points_exist,
+        kna1.customer_central_billing_block_code AS central_billing_block_for_customer,
+        kna1.master_record_account_num AS account_number_of_the_master_record_with_the_fiscal_address,
+        REGEXP_REPLACE(kna1.hier_assign_code,'^0+$','') AS assignment_to_hierarchy,
+        kna1.dlvry_note_inspect_flag AS inspection_for_a_delivery_note_after_outbound_delivery,
+        kna1.customer_inspect_flag AS inspection_carried_out_by_customer_no_inspection_lot,
+        kna1.employee_year_num AS year_for_which_the_number_of_employees_is_given,
+        REGEXP_REPLACE(kna1.employee_year_cnt,'^0+$','') AS yearly_number_of_employees,
+        kna1.attr1_code AS attribute_1,
+        kna1.attr10_code AS attribute_10,
+        kna1.attr2_code AS attribute_2,
+        kna1.attr3_code AS attribute_3,
+        kna1.attr4_code AS attribute_4,
+        kna1.attr5_code AS attribute_5,
+        kna1.attr6_code AS attribute_6,
+        kna1.attr7_code AS attribute_7,
+        kna1.attr8_code AS attribute_8,
+        kna1.attr9_code AS attribute_9,
+        kna1.customer_cond_group1_code AS customer_condition_group_1,
+        kna1.customer_cond_group2_code AS customer_condition_group_2,
+        kna1.customer_cond_group3_code AS customer_condition_group_3,
+        kna1.customer_cond_group4_code AS customer_condition_group_4,
+        kna1.customer_cond_group5_code AS customer_condition_group_5,
+        kna1.work_time_cal_code AS working_time_calendar,
+        kna1.alt_payer_account_num AS account_number_of_an_alternative_payer,
+        kna1.uniform_resource_locator_name AS uniform_resource_locator,
+        kna1.one_time_account_ref_account_group_code AS reference_account_group_for_one_time_account_customer,
+        kna1.trans_zone_code AS transportation_zone_to_or_from_which_the_goods_are_delivered,
+        kna1.matchcd_search_term1_name AS search_term_for_matchcode_search_1,
+        kna1.matchcd_search_term2_name AS search_term_for_matchcode_search_2,
+        kna1.matchcd_search_term3_name AS search_term_for_matchcode_search_3,
+        kna1.military_use_flag AS id_for_mainly_military_use,
+        kna1.central_posting_block_flag AS central_posting_block,
+        kna1.tax4_num AS tax_number_4,
+        kna1.tax_num_type_code AS tax_number_type,
+        kna1.business_partner_equalzn_flag AS indicator_business_partner_subject_to_equalization_tax,
+        kna1.natural_person_flag AS natural_person,
+        kna1.vat_liable_flag AS liable_for_vat,
+        kna1.telebox_num AS telebox_number,
+        kna1.second_tel_num AS second_telephone_number,
+        kna1.teletex_num AS teletex_number,
+        kna1.sales_year_num AS year_for_which_sales_are_given,
+        kna1.annual_sales_amt AS annual_sales_1,
+        kna1.annual_sales2_amt AS annual_sales_2,
+        kna1.icms_exempt_customer_flag AS customer_is_icms_exempt,
+        kna1.alt_payer_use_account_flag AS indicator_alternative_payer_using_account_number,
+        kna1.icms_customer_group_code AS customer_group_for_substituicao_tributaria_calculation,
+        kna1.ipi_exempt_customer_flag AS customer_is_ipi_exempt,
+        kna1.allow_alt_payee_flag AS indicator_is_an_alternative_payer_allowed_in_document,
+        kna1.group_key_code AS group_key,
+        kna1.telex_num AS telex_number,
+        kna1.data_medium_exchange_instr_key_code AS instruction_key_for_data_medium_exchange,
+        kna1.tax_law_icms_code AS tax_law_icms,
+        kna1.tax_law_ipi_code AS tax_law_ipi,
+        kna1.city_code,
+        kna1.city_coord_code AS city_coordinates,
+        kna1.po_box_city_name AS po_box_city,
+        kna1.regional_market_code AS regional_market,
+        kna1.vat_registn_num AS vat_registration_number,
+        kna1.tax_type_code AS tax_type,
+        adr6.email_address_name AS e_mail_address,
+        kna1.group_key_code AS group_key,
+        SUBSTR(kna1.group_key_code, 3, 2),
+        SUBSTR(kna1.group_key_code, 5, 4),
+        SUBSTR(kna1.group_key_code, 9, 2)
+    FROM {g11_db_name}.customer_dim AS kna1
+    LEFT JOIN {g11_db_name}.Email_adresses_lkp AS adr6
+        ON kna1.address_num = adr6.address_num
+    """
+
+    # Execute the SQL query
+    spark.sql(query)
+
+    logger.info(
+        "Data has been successfully loaded into {}.{}".format(
+            target_db_name, target_table
+        )
+    )
+
+    return 0
+
+
+def main():
+    # Initialize Spark session and logging
+    spark = get_spark()
+    dbutils = get_dbutils()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    # Configuration
+    config = Configuration.load_for_default_environment(__file__, dbutils)
+
+    g11_db_name = f"{config['src-catalog-name']}.{config['g11_db_name']}"
+    schema = f"{config['catalog-name']}.{config['schema-name']}"
+    target_table = f"{config['tables']['cust_na_dim']}"
+
+    cust_na_dim(
+        spark=spark,
+        logger=logger,
+        g11_db_name=g11_db_name,
+        target_db_name=schema,
+        target_table=target_table,
+    )
+
+
+if __name__ == "__main__":
+    main()
