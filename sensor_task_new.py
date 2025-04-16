@@ -1,0 +1,109 @@
+script_1:
+
+def check_count(condition):
+  retry_count = 0 
+  while condition == 'false':
+    rec_count = spark.sql("select * from (select 1 from {}.{} where unix_timestamp(concat(substring(report_date, 1, 4), substring(report_date, 6, 2), substring(report_date, 9, 2)), 'yyyyMMdd') >= unix_timestamp('{}','yyyyMMdd') - (86400 * 10)) a limit 1 ".format(db,tbl,current_date)).count()
+    if rec_count == 0 :
+      condition = 'false'
+      retry_count = retry_count + 1
+    else:
+      condition =  'true'
+    
+    print('table is yet to be loaded. Retry in 10 mins ')
+    print('retry_count' + str(retry_count))
+    time.sleep(300)
+
+    if retry_count >= 60 and condition == 'false':      
+       raise 
+	   
+	   import time
+from datetime import date , datetime
+
+# run_date = datetime.now()
+# current_date = run_date.strftime("%Y%m%d")
+
+print(current_date)
+rec_count = spark.sql("select * from (select 1 from {}.{} where unix_timestamp(concat(substring(report_date, 1, 4), substring(report_date, 6, 2), substring(report_date, 9, 2)), 'yyyyMMdd') >= unix_timestamp('{}', 'yyyyMMdd') - (86400 * 10)) a limit 1 ".format(db,tbl,current_date)).count()
+
+print(rec_count)
+
+if rec_count == 0 :
+  condition = 'false'
+  check_count(condition)
+else:
+  condition = 'true'
+  
+script_2:
+
+def check_count(condition):
+  retry_count = 0 
+  while condition == 'false':
+    rec_count = spark.sql("select load_end_utc_tmstp from load_process_control.load_process_plc where table_name = '{}' and db_name = '{}' and substring(load_end_utc_tmstp, 1, 8) >= {} limit 1 ".format(tbl,db,current_date)).count()
+    if rec_count == 0 :
+      condition = 'false'
+      retry_count = retry_count + 1
+    else:
+      condition =  'true'
+    
+    print('table is yet to be loaded. Retry in 10 mins ')
+    print('retry_count' + str(retry_count))
+    time.sleep(300)
+
+    if retry_count >= 60 and condition == 'false':      
+       raise 
+	   
+	   
+	   import time
+from datetime import date , datetime
+
+# run_date = datetime.now()
+# current_date = run_date.strftime("%Y%m%d")
+
+print(current_date)
+rec_count = spark.sql("select load_end_utc_tmstp from load_process_control.load_process_plc where table_name = '{}' and db_name = '{}' and substring(load_end_utc_tmstp, 1, 8) >= {} limit 1 ".format(tbl,db,current_date)).count()
+
+print(rec_count)
+
+if rec_count == 0 :
+  condition = 'false'
+  check_count(condition)
+else:
+  condition = 'true'
+  
+Script_3
+
+def check_count(condition):
+  retry_count = 0 
+  while condition == 'false':
+    rec_count = spark.sql("select * from (select 1 from {}.{} where unix_timestamp(load_tmstp, 'yyyyMMdd') >= unix_timestamp('{}', 'yyyyMMdd') - (86400 * 7)) a limit 1 ".format(db,tbl,current_date)).count()
+    if rec_count == 0 :
+      condition = 'false'
+      retry_count = retry_count + 1
+    else:
+      condition =  'true'
+    
+    print('table is yet to be loaded. Retry in 10 mins ')
+    print('retry_count' + str(retry_count))
+    time.sleep(300)
+
+    if retry_count >= 60 and condition == 'false':      
+       raise 
+	   
+	   
+import time
+from datetime import date , datetime
+
+# run_date = datetime.now()
+# current_date = run_date.strftime("%Y%m%d")
+
+print(current_date)
+rec_count = spark.sql("select * from (select 1 from {}.{} where unix_timestamp(load_tmstp, 'yyyyMMdd') >= unix_timestamp('{}', 'yyyyMMdd') - (86400 * 7)) a limit 1 ".format(db,tbl,current_date)).count()
+
+print(rec_count)
+
+if rec_count == 0 :
+  condition = 'false'
+  check_count(condition)
+else:
+  condition = 'true'
