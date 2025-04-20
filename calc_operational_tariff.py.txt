@@ -1,0 +1,364 @@
+import logging
+import sys
+
+from pg_composite_pipelines_configuration.configuration import Configuration
+from pyspark.sql import DataFrame, SparkSession
+from pyspark.sql.functions import col
+from pyspark.sql.types import DataType, StructType
+
+from pg_tw_fa_artemis.common import get_dbutils, get_spark
+
+def insertOperationalTariffFilterStarTask(spark, logger, database_name):
+    query = f"""
+    USE ${hivevar:database};
+
+CREATE TEMPORARY VIEW operational_tariff_filter_withSFLANE AS
+select
+  (concat (left(A.`origin corporate id 2`, 20),'-',left(A.`dest corporate id2`, 20))) as `SF Lane`,
+  A.`lane origin zone`,
+  A.`lane destination zone`,
+  A.`origin corporate id 2`,
+  A.`destination zip`,
+  A.`dest location description`,
+  A.`dest corporate id2`,
+  A.`exclude from optimization`,
+  A.`exclude from cst`,
+  A.`tariff number`,
+  A.`carrier id`,
+  A.`carrier description`,
+  A.service,
+  A.`service description`,
+  A.`cea profile id`,
+  A.`number of train op days`,
+  A.`train days of week`,
+  A.`transit time`,
+  A.`charge code`,
+  A.`charge description`,
+  A.rate,
+  A.`payment currency`,
+  A.`rating unit`,
+  A.`base charge`,
+  A.`minimum charge`,
+  A.`rate effective date`,
+  A.`rate exp date`,
+  A.`minimum weight`,
+  A.`minimum floor positions`,
+  A.`maximum floor positions`,
+  A.`maximum weight`,
+  A.`auto-accept tender override`,
+  A.`freight auction eligibility`,
+  A.`allocation type`,
+  A.`allocation profile basis`,
+  A.awards,
+  A.`percent weekly allocation`,
+  A.`mon min (loads)`,
+  A.`mon max (loads)`,
+  A.`tue min (loads)`,
+  A.`tue max (loads)`,
+  A.`wed min (loads)`,
+  A.`wed max (loads)`,
+  A.`thu min (loads)`,
+  A.`thu max (loads)`,
+  A.`fri min (loads)`,
+  A.`fri max (loads)`,
+  A.`sat min (loads)`,
+  A.`sat max (loads)`,
+  A.`sun min (loads)`,
+  A.`sun max (loads)`,
+  A.`delivery schedule id`,
+  A.`equipment type`,
+  A.status,
+  A.`rate code`,
+  A.`service grade`,
+  A.`tariff id`,
+  A.`maximum no of shipments`,
+  A.`customer id`,
+  A.`customer description`,
+  A.`equipment code`,
+  A.`resource project id`,
+  A.`report date`
+from
+  (
+    select
+      `lane origin zone`,
+      `lane destination zone`,
+      case
+        when (`origin corporate id 2` is null or `origin corporate id 2` = '') then `lane origin zone`
+        else `origin corporate id 2`
+      end as `origin corporate id 2`,
+      `destination zip`,
+      `dest location description`,
+      case
+        when (`dest corporate id2` not like 'SF_%' or `dest corporate id2` is null or `dest corporate id2` = '') then `lane destination zone`
+        else `dest corporate id2`
+      end as `dest corporate id2`,
+      `exclude from optimization`,
+      `exclude from cst`,
+      `tariff number`,
+      `carrier id`,
+      `carrier description`,
+      `service`,
+      `service description`,
+      `cea profile id`,
+      `number of train op days`,
+      `train days of week`,
+      `transit time`,
+      `charge code`,
+      `charge description`,
+      rate,
+      `payment currency`,
+      `rating unit`,
+      `base charge`,
+      `minimum charge`,
+      `rate effective date`,
+      `rate exp date`,
+      `minimum weight`,
+      `minimum floor positions`,
+      `maximum floor positions`,
+      `maximum weight`,
+      `auto-accept tender override`,
+      `freight auction eligibility`,
+      `allocation type`,
+      `allocation profile basis`,
+      awards,
+      `percent weekly allocation`,
+      `mon min (loads)`,
+      `mon max (loads)`,
+      `tue min (loads)`,
+      `tue max (loads)`,
+      `wed min (loads)`,
+      `wed max (loads)`,
+      `thu min (loads)`,
+      `thu max (loads)`,
+      `fri min (loads)`,
+      `fri max (loads)`,
+      `sat min (loads)`,
+      `sat max (loads)`,
+      `sun min (loads)`,
+      `sun max (loads)`,
+      `delivery schedule id`,
+      `equipment type`,
+      status,
+      `rate code`,
+      `service grade`,
+      `tariff id`,
+      `maximum no of shipments`,
+      `customer id`,
+      `customer description`,
+      `equipment code`,
+      `resource project id`,
+      `report date`
+    from
+      (
+        select
+          case
+            when `source`.`report_date` >= '2018-06-01'
+            and `source`.`report_date` < '2018-09-10' then `source`.`origin_corp_code`
+            else `source`.`lane_origin_zone_code`
+          end as `lane origin zone`,
+          `source`.`lane_dstn_zone_id` `lane destination zone`,
+          `source`.`origin_corp_code` `origin corporate id 2`,
+          `source`.`dest_zip_code` `destination zip`,
+          `source`.`dest_loc_desc` `dest location description`,
+          `source`.`dest_corp_code` `dest corporate id2`,
+          `source`.`exclude_from_optimization_flag` `exclude from optimization`,
+          `source`.`exclude_from_cst_flag` `exclude from cst`,
+          `source`.`tariff_id` `tariff number`,
+          `source`.`carrier_id` `carrier id`,
+          `source`.`carrier_name` `carrier description`,
+          `source`.`service_code` `service`,
+          `source`.`service_desc` `service description`,
+          `source`.`cea_profile_code` `cea profile id`,
+          `source`.`train_operating_day_qty` `number of train op days`,
+          `source`.`train_day_of_week_list` `train days of week`,
+          `source`.`transit_time_val` `transit time`,
+          `source`.`charge_code` `charge code`,
+          `source`.`charge_desc` `charge description`,
+          `source`.`mile_contract_rate` `rate`,
+          `source`.`payment_crncy_code` `payment currency`,
+          `source`.`rate_unit_code` `rating unit`,
+          `source`.`base_charge_amt` `base charge`,
+          `source`.`min_charge_amt` `minimum charge`,
+          `source`.`rate_eff_date` `rate effective date`,
+          `source`.`rate_exp_date` `rate exp date`,
+          `source`.`min_weight_qty` `minimum weight`,
+          `source`.`min_floor_postn_cnt` `minimum floor positions`,
+          `source`.`max_floor_postn_cnt` `maximum floor positions`,
+          `source`.`max_weight_qty` `maximum weight`,
+          `source`.`auto_accept_tender_override_flag` `auto-accept tender override`,
+          `source`.`freight_auction_eligibility_code` `freight auction eligibility`,
+          `source`.`alloc_type_code` `allocation type`,
+          `source`.`alloc_profile_val` `allocation profile basis`,
+          `source`.`award_rate` `awards`,
+          `source`.`weekly_alloc_pct` `percent weekly allocation`,
+          `source`.`mon_min_load_qty` `mon min (loads)`,
+          `source`.`mon_max_load_qty` `mon max (loads)`,
+          `source`.`tue_min_load_qty` `tue min (loads)`,
+          `source`.`tue_max_load_qty` `tue max (loads)`,
+          `source`.`wed_min_load_qty` `wed min (loads)`,
+          `source`.`wed_max_load_qty` `wed max (loads)`,
+          `source`.`thu_min_load_qty` `thu min (loads)`,
+          `source`.`thu_max_load_qty` `thu max (loads)`,
+          `source`.`fri_min_load_qty` `fri min (loads)`,
+          `source`.`fri_max_load_qty` `fri max (loads)`,
+          `source`.`sat_min_load_qty` `sat min (loads)`,
+          `source`.`sat_max_load_qty` `sat max (loads)`,
+          `source`.`sun_min_load_qty` `sun min (loads)`,
+          `source`.`sun_max_load_qty` `sun max (loads)`,
+          `source`.`dlvry_schedule_code` `delivery schedule id`,
+          `source`.`equip_type_code` `equipment type`,
+          `source`.`status_code` `status`,
+          `source`.`rate_code` `rate code`,
+          `source`.`service_grade_val` `service grade`,
+          `source`.`tariff_desc` `tariff id`,
+          `source`.`max_no_of_shpmt_cnt` `maximum no of shipments`,
+          `source`.`cust_id` `customer id`,
+          `source`.`cust_desc` `customer description`,
+          `source`.`equip_code` `equipment code`,
+          `source`.`resource_project_code` `resource project id`,
+          `source`.`report_date` `report date`
+        from
+          dp_trans_vsblt_bw.operational_tariff_filter_star `source`)) A
+;
+
+CREATE TEMPORARY VIEW operational_tariff_Zone_Awards as 
+select
+  `SF Lane`,
+  `report date`,
+  `origin corporate id 2`,
+  `dest corporate id2`,
+  max(awards) AS `Awards`
+FROM
+ operational_tariff_filter_withSFLANE
+Group by
+  `SF Lane`,
+  `report date`,
+  `lane origin zone`,
+  `lane destination zone`,
+  `origin corporate id 2`,
+  `dest corporate id2`,
+  `carrier id`,
+  `service`
+;
+CREATE OR REPLACE TEMPORARY VIEW operational_tariff_Total_SF_Awards_Volume AS
+select
+  `SF Lane`,
+  `report date`,
+  SUM(awards) as `TOTAL SF Award Volume`
+FROM
+  operational_tariff_Zone_Awards
+Group by
+  `SF Lane`,
+  `report date`,
+  `origin corporate id 2`,
+  `dest corporate id2`
+;
+
+INSERT OVERWRITE TABLE operational_tariff_filter_star
+select 
+OT.`SF Lane` SF_Lane
+,OT.`lane origin zone`    lane_origin_zone
+,OT.`lane destination zone`    lane_destination_zone
+,OT.`origin corporate id 2`    origin_corporate_id_2
+,OT.`destination zip`    destination_zip
+,OT.`dest location description`    dest_location_description
+,OT.`dest corporate id2`    dest_corporate_id2
+,OT.`exclude from optimization`    exclude_from_optimization
+,OT.`exclude from cst`    exclude_from_cst
+,OT.`tariff number`    tariff_number
+,OT.`carrier id`    carrier_id
+,OT.`carrier description`    carrier_description
+,OT.`service`    service
+,OT.`service description`    service_description
+,OT.`cea profile id`    cea_profile_id
+,OT.`number of train op days`    number_of_train_op_days
+,OT.`train days of week`    train_days_of_week
+,OT.`transit time`    transit_time
+,OT.`charge code`    charge_code
+,OT.`charge description`    charge_description
+,OT.`rate`    rate
+,OT.`payment currency`    payment_currency
+,OT.`rating unit`    rating_unit
+,OT.`base charge`    base_charge
+,OT.`minimum charge`    minimum_charge
+,OT.`rate effective date`    rate_effective_date
+,OT.`rate exp date`    rate_exp_date
+,OT.`minimum weight`    minimum_weight
+,OT.`minimum floor positions`    minimum_floor_positions
+,OT.`maximum floor positions`    maximum_floor_positions
+,OT.`maximum weight`    maximum_weight
+,OT.`auto-accept tender override`    auto_accept_tender_override
+,OT.`freight auction eligibility`    freight_auction_eligibility
+,OT.`allocation type`    allocation_type
+,OT.`allocation profile basis`    allocation_profile_basis
+,OT.`awards`    awards
+,OT.`percent weekly allocation`    percent_weekly_allocation
+,OT.`mon min (loads)`    mon_min_loads
+,OT.`mon max (loads)`    mon_max_loads
+,OT.`tue min (loads)`    tue_min_loads
+,OT.`tue max (loads)`    tue_max_loads
+,OT.`wed min (loads)`    wed_min_loads
+,OT.`wed max (loads)`    wed_max_loads
+,OT.`thu min (loads)`    thu_min_loads
+,OT.`thu max (loads)`    thu_max_loads
+,OT.`fri min (loads)`    fri_min_loads
+,OT.`fri max (loads)`    fri_max_loads
+,OT.`sat min (loads)`    sat_min_loads
+,OT.`sat max (loads)`    sat_max_loads
+,OT.`sun min (loads)`    sun_min_loads
+,OT.`sun max (loads)`    sun_max_loads
+,OT.`delivery schedule id`    delivery_schedule_id
+,OT.`equipment type`    equipment_type
+,OT.`status`    status
+,OT.`rate code`    rate_code
+,OT.`service grade`    service_grade
+,OT.`tariff id`    tariff_id
+,OT.`maximum no of shipments`    maximum_no_of_shipments
+,OT.`customer id`    customer_id
+,OT.`customer description`    customer_description
+,OT.`equipment code`    equipment_code
+,OT.`resource project id`    resource_project_id
+,OT.`report date`    report_date
+,SFA.`TOTAL SF Award Volume` TOTAL_SF_Award_Volume
+
+from operational_tariff_filter_withSFLANE OT
+left join operational_tariff_Total_SF_Awards_Volume SFA
+      ON   OT.`SF Lane` = SFA.`SF Lane`
+      and  OT.`report date` = SFA.`report date`
+	  
+;
+    """
+
+    commands = [cmd.strip() for cmd in query.strip().split(";") if cmd.strip()]
+
+    for i, cmd in enumerate(commands, 1):
+        logger.info(f"Executing SQL command {i}: {cmd.splitlines()[0]}")
+        spark.sql(cmd)
+
+    logger.info("Data has been successfully loaded into target tables.")
+    return 0
+
+def main():
+    spark = get_spark()
+    dbutils = get_dbutils()
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    )
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+
+    config = Configuration.load_for_default_environment(__file__, dbutils)
+
+    db_name = f"{config['catalog-name']}.{config['schema-name']}"
+
+    insertOperationalTariffFilterStarTask(
+        spark=spark,
+        logger=logger,
+        database_name=db_name
+    )
+
+
+if __name__ == "__main__":
+    main()
