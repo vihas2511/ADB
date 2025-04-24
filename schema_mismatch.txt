@@ -1,0 +1,218 @@
+AnalysisException: A schema mismatch detected when writing to the Delta table (Table ID: 24e4d061-de0b-40a1-a0e4-bf9e85ac4ddf).
+To enable schema migration using DataFrameWriter or DataStreamWriter, please set:
+'.option("mergeSchema", "true")'.
+For other operations, set the session configuration
+spark.databricks.delta.schema.autoMerge.enabled to "true". See the documentation
+specific to the operation for details.
+
+Table schema:
+root
+-- customer_id: string (nullable = true)
+-- l1_global_lvl: string (nullable = true)
+-- l1_global_name: string (nullable = true)
+-- l2_key_customer_group_lvl: string (nullable = true)
+-- l2_key_customer_group_name: string (nullable = true)
+-- l3_vary1_lvl: string (nullable = true)
+-- l3_vary1_name: string (nullable = true)
+-- l4_vary2_lvl: string (nullable = true)
+-- l4_vary2_name: string (nullable = true)
+-- l5_country_top_account_lvl: string (nullable = true)
+-- l5_country_top_account_name: string (nullable = true)
+-- l6_vary6_lvl: string (nullable = true)
+-- l6_vary6_name: string (nullable = true)
+-- l7_intrmdt_lvl: string (nullable = true)
+-- l7_intrmdt_name: string (nullable = true)
+-- l8_intrmdt2_lvl: string (nullable = true)
+-- l8_intrmdt2_name: string (nullable = true)
+-- l9_intrmdt3_lvl: string (nullable = true)
+-- l9_intrmdt3_name: string (nullable = true)
+-- l10_intrmdt4_lvl: string (nullable = true)
+-- l10_intrmdt4_name: string (nullable = true)
+-- l11_intrmdt5_lvl: string (nullable = true)
+-- l11_intrmdt5_name: string (nullable = true)
+-- l12_ship_to_lvl: string (nullable = true)
+-- l12_ship_to_name: string (nullable = true)
+
+
+Data schema:
+root
+-- gwscust: string (nullable = true)
+-- cust_1_id: string (nullable = true)
+-- cust_1_name: string (nullable = true)
+-- cust_2_id: string (nullable = true)
+-- cust_2_name: string (nullable = true)
+-- cust_3_id: string (nullable = true)
+-- cust_3_name: string (nullable = true)
+-- cust_4_id: string (nullable = true)
+-- cust_4_name: string (nullable = true)
+-- cust_5_id: string (nullable = true)
+-- cust_5_name: string (nullable = true)
+-- cust_6_id: string (nullable = true)
+-- cust_6_name: string (nullable = true)
+-- cust_7_id: string (nullable = true)
+-- cust_7_name: string (nullable = true)
+-- cust_8_id: string (nullable = true)
+-- cust_8_name: string (nullable = true)
+-- cust_9_id: string (nullable = true)
+-- cust_9_name: string (nullable = true)
+-- cust_10_id: string (nullable = true)
+-- cust_10_name: string (nullable = true)
+-- cust_11_id: string (nullable = true)
+-- cust_11_name: string (nullable = true)
+-- cust_12_id: string (nullable = true)
+-- cust_12_name: string (nullable = true)
+
+         
+To overwrite your schema or change partitioning, please set:
+'.option("overwriteSchema", "true")'.
+
+Note that the schema can't be overwritten when using
+'replaceWhere'.
+---------------------------------------------------------------------------
+AnalysisException                         Traceback (most recent call last)
+File ~/.ipykernel/1659/command--1-1402539297:18
+     15 entry = [ep for ep in metadata.distribution("pg_tw_fa_transfix_na").entry_points if ep.name == "customer_656_na"]
+     16 if entry:
+     17   # Load and execute the entrypoint, assumes no parameters
+---> 18   entry[0].load()()
+     19 else:
+     20   import importlib
+
+File /local_disk0/.ephemeral_nfs/cluster_libraries/python/lib/python3.10/site-packages/pg_tw_fa_transfix_na/silver_ps_transfix_na/etl/customer_656_na.py:331, in main()
+    328 # Validate data before performing insert
+    329 if validate_data(spark, logger, rds_schema_name):
+    330     # Call the task to insert the data
+--> 331     insertCustHierarchyTask(
+    332         spark=spark,
+    333         logger=logger,
+    334         rds_schema_name=rds_schema_name,
+    335         target_db_name=schema,
+    336         target_table=target_table,
+    337     )
+    338 else:
+    339     logger.error("Data validation failed. Aborting insert operation.")
+
+File /local_disk0/.ephemeral_nfs/cluster_libraries/python/lib/python3.10/site-packages/pg_tw_fa_transfix_na/silver_ps_transfix_na/etl/customer_656_na.py:267, in insertCustHierarchyTask(spark, logger, rds_schema_name, target_db_name, target_table)
+     13     query = f"""
+     14     SELECT 
+     15 	CASE 
+   (...)
+    262 		AND ch.cust_3_id = sub.cust_3_id;
+    263     """
+    265     cust_hierarchy656_na_lkp_df = spark.sql(query)
+--> 267     cust_hierarchy656_na_lkp_df.write.format("delta").mode("overwrite").saveAsTable(
+    268         f"{target_db_name}.{target_table}"
+    269     )
+    271     logger.info(
+    272         "Data has been successfully loaded into {}.{}".format(
+    273             target_db_name, target_table
+    274         )
+    275     )
+    277     return 0
+
+File /databricks/spark/python/pyspark/instrumentation_utils.py:47, in _wrap_function.<locals>.wrapper(*args, **kwargs)
+     45 start = time.perf_counter()
+     46 try:
+---> 47     res = func(*args, **kwargs)
+     48     logger.log_success(
+     49         module_name, class_name, function_name, time.perf_counter() - start, signature
+     50     )
+     51     return res
+
+File /databricks/spark/python/pyspark/sql/readwriter.py:1841, in DataFrameWriter.saveAsTable(self, name, format, mode, partitionBy, **options)
+   1839 if format is not None:
+   1840     self.format(format)
+-> 1841 self._jwrite.saveAsTable(name)
+
+File /databricks/spark/python/lib/py4j-0.10.9.7-src.zip/py4j/java_gateway.py:1355, in JavaMember.__call__(self, *args)
+   1349 command = proto.CALL_COMMAND_NAME +\
+   1350     self.command_header +\
+   1351     args_command +\
+   1352     proto.END_COMMAND_PART
+   1354 answer = self.gateway_client.send_command(command)
+-> 1355 return_value = get_return_value(
+   1356     answer, self.gateway_client, self.target_id, self.name)
+   1358 for temp_arg in temp_args:
+   1359     if hasattr(temp_arg, "_detach"):
+
+File /databricks/spark/python/pyspark/errors/exceptions/captured.py:230, in capture_sql_exception.<locals>.deco(*a, **kw)
+    226 converted = convert_exception(e.java_exception)
+    227 if not isinstance(converted, UnknownException):
+    228     # Hide where the exception came from that shows a non-Pythonic
+    229     # JVM exception message.
+--> 230     raise converted from None
+    231 else:
+    232     raise
+
+AnalysisException: A schema mismatch detected when writing to the Delta table (Table ID: 24e4d061-de0b-40a1-a0e4-bf9e85ac4ddf).
+To enable schema migration using DataFrameWriter or DataStreamWriter, please set:
+'.option("mergeSchema", "true")'.
+For other operations, set the session configuration
+spark.databricks.delta.schema.autoMerge.enabled to "true". See the documentation
+specific to the operation for details.
+
+Table schema:
+root
+-- customer_id: string (nullable = true)
+-- l1_global_lvl: string (nullable = true)
+-- l1_global_name: string (nullable = true)
+-- l2_key_customer_group_lvl: string (nullable = true)
+-- l2_key_customer_group_name: string (nullable = true)
+-- l3_vary1_lvl: string (nullable = true)
+-- l3_vary1_name: string (nullable = true)
+-- l4_vary2_lvl: string (nullable = true)
+-- l4_vary2_name: string (nullable = true)
+-- l5_country_top_account_lvl: string (nullable = true)
+-- l5_country_top_account_name: string (nullable = true)
+-- l6_vary6_lvl: string (nullable = true)
+-- l6_vary6_name: string (nullable = true)
+-- l7_intrmdt_lvl: string (nullable = true)
+-- l7_intrmdt_name: string (nullable = true)
+-- l8_intrmdt2_lvl: string (nullable = true)
+-- l8_intrmdt2_name: string (nullable = true)
+-- l9_intrmdt3_lvl: string (nullable = true)
+-- l9_intrmdt3_name: string (nullable = true)
+-- l10_intrmdt4_lvl: string (nullable = true)
+-- l10_intrmdt4_name: string (nullable = true)
+-- l11_intrmdt5_lvl: string (nullable = true)
+-- l11_intrmdt5_name: string (nullable = true)
+-- l12_ship_to_lvl: string (nullable = true)
+-- l12_ship_to_name: string (nullable = true)
+
+
+Data schema:
+root
+-- gwscust: string (nullable = true)
+-- cust_1_id: string (nullable = true)
+-- cust_1_name: string (nullable = true)
+-- cust_2_id: string (nullable = true)
+-- cust_2_name: string (nullable = true)
+-- cust_3_id: string (nullable = true)
+-- cust_3_name: string (nullable = true)
+-- cust_4_id: string (nullable = true)
+-- cust_4_name: string (nullable = true)
+-- cust_5_id: string (nullable = true)
+-- cust_5_name: string (nullable = true)
+-- cust_6_id: string (nullable = true)
+-- cust_6_name: string (nullable = true)
+-- cust_7_id: string (nullable = true)
+-- cust_7_name: string (nullable = true)
+-- cust_8_id: string (nullable = true)
+-- cust_8_name: string (nullable = true)
+-- cust_9_id: string (nullable = true)
+-- cust_9_name: string (nullable = true)
+-- cust_10_id: string (nullable = true)
+-- cust_10_name: string (nullable = true)
+-- cust_11_id: string (nullable = true)
+-- cust_11_name: string (nullable = true)
+-- cust_12_id: string (nullable = true)
+-- cust_12_name: string (nullable = true)
+
+         
+To overwrite your schema or change partitioning, please set:
+'.option("overwriteSchema", "true")'.
+
+Note that the schema can't be overwritten when using
+'replaceWhere'.
+         
+Workload failed, see run output for details
