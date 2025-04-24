@@ -1,0 +1,26 @@
+col_name	data_type	comment
+customer_id	string	Customer Number
+l1_global_lvl	string	656L01 Global
+l1_global_name	string	656L01 Global Name
+l2_key_customer_group_lvl	string	656L02 Key Customer Group
+l2_key_customer_group_name	string	656L02 Key Customer Group Name
+l3_vary1_lvl	string	656L03 (Varies by Customer 1)
+l3_vary1_name	string	656L03 (Varies by Customer 1) Name
+l4_vary2_lvl	string	656L04 (Varies by Customer 2)
+l4_vary2_name	string	656L04 (Varies by Customer 2) Name
+l5_country_top_account_lvl	string	656L05 Country Top Account
+l5_country_top_account_name	string	656L05 Country Top Account Name
+l6_vary6_lvl	string	656L06 (Varies by Customer 6)
+l6_vary6_name	string	656L06 (Varies by Customer 6) Name
+l7_intrmdt_lvl	string	656L07 Intermediate Level
+l7_intrmdt_name	string	656L07 Intermediate Level Name
+l8_intrmdt2_lvl	string	656L08 Intermediate Level 2
+l8_intrmdt2_name	string	656L08 Intermediate Level 2 Name
+l9_intrmdt3_lvl	string	656L09 Intermediate Level 3
+l9_intrmdt3_name	string	656L09 Intermediate Level 3 Name
+l10_intrmdt4_lvl	string	656L10 Intermediate Level 4
+l10_intrmdt4_name	string	656L10 Intermediate Level 4 Name
+l11_intrmdt5_lvl	string	656L11 Intermediate Level 5
+l11_intrmdt5_name	string	656L11 Intermediate Level 5 Name
+l12_ship_to_lvl	string	656L12 Ship To
+l12_ship_to_name	string	656L12 Ship To Name
