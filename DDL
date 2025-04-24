@@ -1,0 +1,407 @@
+--assume that schema exists and "use <schema>" was run
+
+--$location is replaced at execution time by the migration library with the storage path passed to the migration library
+--$schema is replaced at execution time by the schema name passed in
+--other $values can be passed in using kwargs.  
+--Read more about Migration library features and and details at https://github.com/procter-gamble/de-cf-ps-migration
+
+CREATE TABLE IF NOT EXISTS $schema.cust_hierarchy656_na_lkp (
+    customer_id STRING
+    , l1_global_lvl STRING
+    , l1_global_name STRING
+    , l2_key_customer_group_lvl STRING
+    , l2_key_customer_group_name STRING
+    , l3_vary1_lvl STRING
+    , l3_vary1_name STRING
+    , l4_vary2_lvl STRING
+    , l4_vary2_name STRING
+    , l5_country_top_account_lvl STRING
+    , l5_country_top_account_name STRING
+    , l6_vary6_lvl STRING
+    , l6_vary6_name STRING
+    , l7_intrmdt_lvl STRING
+    , l7_intrmdt_name STRING
+    , l8_intrmdt2_lvl STRING
+    , l8_intrmdt2_name STRING
+    , l9_intrmdt3_lvl STRING
+    , l9_intrmdt3_name STRING
+    , l10_intrmdt4_lvl STRING
+    , l10_intrmdt4_name STRING
+    , l11_intrmdt5_lvl STRING
+    , l11_intrmdt5_name STRING
+    , l12_ship_to_lvl STRING
+    , l12_ship_to_name STRING
+) USING DELTA
+COMMENT 'Customer Hierarchy 656 Master Data'
+LOCATION '$location/cust_hierarchy656_na_lkp';
+
+CREATE TABLE IF NOT EXISTS $schema.cust_na_dim (
+    customer_id STRING
+    , customer_account_group_code STRING
+    , address_id STRING
+    , city_name STRING
+    , district_name STRING
+    , country_code STRING
+    , customer_class_code STRING
+    , fax_num STRING
+    , fiscal_year_variant_code STRING
+    , tax_num3_code STRING
+    , one_time_account_flag STRING
+    , industry_code STRING
+    , industry2_code STRING
+    , industry3_code STRING
+    , industry4_code STRING
+    , industry5_code STRING
+    , lang_code STRING
+    , customer1_name STRING
+    , customer2_name STRING
+    , customer3_name STRING
+    , nielsen_id STRING
+    , trade_partner_company_id STRING
+    , first_phone_num STRING
+    , plant_code STRING
+    , po_box_num STRING
+    , postal_code_num STRING
+    , po_box_postal_code_num STRING
+    , region_code STRING
+    , sort_field_name STRING
+    , house_num_and_street_name STRING
+    , tax1_num STRING
+    , tax2_num STRING
+    , usage_code STRING
+    , vendor_or_creditor_account_num STRING
+    , authrz_group_code STRING
+    , customer_central_dlvry_block_code STRING
+    , county_code STRING
+    , sales_figure_currency_code STRING
+    , master_record_delete_flag STRING
+    , first_fax_num STRING
+    , title1_name STRING
+    , legal_status_code STRING
+    , customer_short_name STRING
+    , payment_block_code STRING
+    , tax_jrsdct_code STRING
+    , central_order_block_code STRING
+    , express_train_station_name STRING
+    , train_station_name STRING
+    , intl_loc1_num STRING
+    , intl_loc2_num STRING
+    , intl_loc_check_digit_num STRING
+    , central_sales_block_flag STRING
+    , biochemical_warfare_flag STRING
+    , nuclear_prevent_flag STRING
+    , national_security_flag STRING
+    , missile_tech_flag STRING
+    , customer_fiscal_code STRING
+    , non_military_use_flag STRING
+    , data_comm_line_num STRING
+    , compttr_flag STRING
+    , sales_partner_flag STRING
+    , sales_prospect_flag STRING
+    , customer_type4_flag STRING
+    , default_sold_to_party_id STRING
+    , consumer_flag STRING
+    , data_medium_exchange_flag STRING
+    , data_transfer_into_subseq_release_code STRING
+    , initial_contact_flag STRING
+    , record_create_date STRING
+    , object_create_name STRING
+    , customer_plant_group_flag STRING
+    , unload_point_exist_flag STRING
+    , central_billing_block_for_customer_code STRING
+    , master_fiscal_address_account_num STRING
+    , assign_to_hier_id STRING
+    , inspect_for_dlvry_note_after_outbound_dlvry_flag STRING
+    , inspect_carry_out_by_customer_flag STRING
+    , employee_year_num STRING
+    , year_employee_cnt STRING
+    , customer_attr1_code STRING
+    , customer_attr10_code STRING
+    , customer_attr2_code STRING
+    , customer_attr3_code STRING
+    , customer_attr4_code STRING
+    , customer_attr5_code STRING
+    , customer_attr6_code STRING
+    , customer_attr7_code STRING
+    , customer_attr8_code STRING
+    , customer_attr9_code STRING
+    , customer_cond_group1_code STRING
+    , customer_cond_group2_code STRING
+    , customer_cond_group3_code STRING
+    , customer_cond_group4_code STRING
+    , customer_cond_group5_code STRING
+    , work_time_cal_name STRING
+    , alt_payer_account_num STRING
+    , uniform_resource_code STRING
+    , one_time_account_ref_group_code STRING
+    , trans_zone_code STRING
+    , search_term1_name STRING
+    , search_term_name STRING
+    , search_term2_name STRING
+    , main_military_use_id STRING
+    , central_posting_block_flag STRING
+    , tax4_num STRING
+    , tax_num_type_code STRING
+    , equalzn_tax_bus_partner_subject_flag STRING
+    , natural_person_flag STRING
+    , liable_for_vat_flag STRING
+    , telebox_num STRING
+    , second_phone_num STRING
+    , teletex_num STRING
+    , sales_year_num STRING
+    , annual_sales1_amt DECIMAL(8, 2)
+    , annual_sales2_amt DECIMAL(15, 2)
+    , icms_exempt_customer_flag STRING
+    , alt_payer_using_account_num_flag STRING
+    , customer_group_for_tax_substtn_calc_code STRING
+    , indstrl_prod_tax_exempt_customer_flag STRING
+    , alt_payer_allow_in_doc_flag STRING
+    , group_key_code STRING
+    , telex_num STRING
+    , data_medium_exchange_instr_code STRING
+    , state_vat_law_val STRING
+    , indstrl_prod_tax_law_val STRING
+    , city_code STRING
+    , city_coord_val STRING
+    , po_box_city_name STRING
+    , regional_market_name STRING
+    , vat_registn_num STRING
+    , tax_code STRING
+    , email_address_name STRING
+    , corp_group_name STRING
+    , customer_team_code STRING
+    , corporate_group_name STRING
+    , distrib_channel_code STRING
+) USING DELTA
+COMMENT 'Customer Master Data'
+LOCATION '$location/cust_na_dim';
+
+CREATE TABLE IF NOT EXISTS $schema.plant_na_dim (
+    plant_id STRING
+    , city_name STRING
+    , company_code STRING
+    , country_code STRING
+    , county_code STRING
+    , interco_billing_distrib_channel_code STRING
+    , interco_billing_divison_code STRING
+    , factory_cal_code STRING
+    , vltn_area_num STRING
+    , lang_code STRING
+    , city_code STRING
+    , plant_name STRING
+    , plant2_name STRING
+    , maint_plan_plant_name STRING
+    , plant_categ_code STRING
+    , po_box_num STRING
+    , postal_code_num STRING
+    , purchase_org_name STRING
+    , region_code STRING
+    , customer_num STRING
+    , interco_billing_sales_org_num STRING
+    , sales_district_name STRING
+    , house_num_and_street_name STRING
+    , tax_jrsdct_code STRING
+    , vendor_plant_num STRING
+    , variance_code STRING
+    , actvng_reqmt_plan_flag STRING
+    , po_tolrnc_compress_day_cnt STRING
+    , take_regular_vendor_into_account_flag STRING
+    , batch_status_mgmt_active_flag STRING
+    , plant_level_cond_flag STRING
+    , source_list_reqmt_flag STRING
+    , first_reminder_day_cnt DECIMAL(3, 0)
+    , second_reminder_day_cnt DECIMAL(3, 0)
+    , third_reminder_day_cnt DECIMAL(3, 0)
+    , plant_purchase_tax_flag STRING
+    , first_dunning_of_vendor_declr_name STRING
+    , second_dunning_of_vendor_declr_name STRING
+    , third_dunning_of_vendor_declr_name STRING
+    , supply_region_name STRING
+) USING DELTA
+COMMENT 'Plant Master Data'
+LOCATION '$location/plant_na_dim';
+
+CREATE TABLE IF NOT EXISTS $schema.prod1_na_dim (
+    prod_id STRING
+    , prod_desc STRING
+    , sector_name STRING
+    , subsector_name STRING
+    , categ_name STRING
+    , segment_name STRING
+    , brand_name STRING
+    , global_form_name STRING
+    , prod_form_detail_name STRING
+    , sub_brand_name STRING
+    , flavor_scent_detail_name STRING
+    , consumer_unit_size_val STRING
+    , consumer_benefit1_name STRING
+    , primary_package_name STRING
+    , tdcval_name STRING
+    , lang_on_pack_val STRING
+    , propose_prod_plant_code STRING
+    , country_of_origin_code STRING
+    , gillette_unit_per_item_num STRING
+    , item_per_shrink_wrap_num STRING
+    , shrink_wrap_per_case_num STRING
+    , item_per_case_num STRING
+    , item_barcode_num STRING
+    , shrink_wrap_barcode_num STRING
+    , case_barcode_num STRING
+    , material_sub_type_code STRING
+    , copy_from_prod_flag STRING
+    , country_of_origin_at_code STRING
+    , gocoa_plan_unit_code STRING
+    , stat_val STRING
+    , us_start_ship_date STRING
+    , canada_start_ship_date STRING
+    , consumer_benefit2_name STRING
+    , consumer_benefit3_name STRING
+    , consumer_benefit4_name STRING
+    , consumer_benefit5_name STRING
+    , consumer_benefit6_name STRING
+    , consumer_benefit7_name STRING
+    , complex_ship_unit_name STRING
+    , custmz_purpose_name STRING
+    , custmz_type_name STRING
+    , every_day_avail_flag STRING
+    , pack_to_order_prod_flag STRING
+    , general_purpose1_name STRING
+    , general_purpose2_name STRING
+    , general_purpose3_name STRING
+    , general_purpose4_name STRING
+    , general_purpose5_name STRING
+    , physical_count_of_prod_name STRING
+    , artwork_brand_name STRING
+    , refill_code STRING
+    , colectn_name STRING
+    , prod_size_val STRING
+    , gender_flag STRING
+    , shade_code STRING
+    , consumer_package_size_val STRING
+    , outlet_name STRING
+    , label_name STRING
+    , color_shade_name STRING
+    , cosmetic_color_name STRING
+    , freq_of_use_val STRING
+    , usage_num STRING
+    , std_first_order_date STRING
+    , std_last_order_date STRING
+    , std_first_ship_date STRING
+    , heat_protect_flag STRING
+    , freeze_protect_flag STRING
+    , dual_country_of_origin_flag STRING
+    , drug_enforce_agency_flag STRING
+    , shelf_pack_flag STRING
+    , order_lead_time STRING
+    , approbation_group_code STRING
+    , oral_care_brush_id STRING
+    , sp_barcode_num STRING
+    , b2_barcode_num STRING
+    , p2_barcode_num STRING
+    , c2_barcode_num STRING
+    , start_of_prodn_date STRING
+    , distrib_center_ship_to_loc_name STRING
+    , half_prod_num STRING
+    , cnvrsn_type_code STRING
+    , first_dlvry_date STRING
+    , first_dlvry_first_order_date STRING
+    , first_dlvry_last_order_date STRING
+    , first_dlvry_first_ship_date STRING
+    , first_dlvry_last_ship_date STRING
+    , predecessor_code STRING
+    , propose_prod_plant193_name STRING
+    , propose_prod_plant194_name STRING
+    , propose_prod_plant195_name STRING
+    , propose_prod_plant196_name STRING
+    , propose_prod_plant197_name STRING
+    , custmz_flag STRING
+    , prof_goods_retail_flag STRING
+) USING DELTA
+COMMENT 'Product 1 Master Data'
+LOCATION '$location/prod1_na_dim';
+
+CREATE TABLE IF NOT EXISTS $schema.sales_org_na_dim (
+    sales_org_id STRING
+    , sales_org_company_code STRING
+    , country_code STRING
+    , currency_code STRING
+    , fiscal_year_variant_code STRING
+    , interco_billing_customer_num STRING
+    , stats_currency_code STRING
+) USING DELTA
+COMMENT 'Sales organization Master Data'
+LOCATION '$location/SALES_ORG_NA_DIM';
+
+CREATE TABLE IF NOT EXISTS $schema.vendor_na_dim (
+    vendor_account_num STRING
+    , vendor_account_group_code STRING
+    , city_name STRING
+    , district_name STRING
+    , country_code STRING
+    , credit_info_num STRING
+    , fax_num STRING
+    , one_time_account_flag STRING
+    , industry_code STRING
+    , lang_code STRING
+    , carr1_name STRING
+    , carr2_name STRING
+    , carr3_name STRING
+    , trade_partner_company_id STRING
+    , first_phone_num STRING
+    , plant_code STRING
+    , po_box_num STRING
+    , postal_code_num STRING
+    , po_box_postal_code_num STRING
+    , region_code STRING
+    , sort_field_name STRING
+    , house_num_and_street_name STRING
+    , tax1_num STRING
+    , tax2_num STRING
+    , master_record_delete_flag STRING
+    , last_review_date STRING
+    , tax_jrsdct_code STRING
+    , train_station_name STRING
+    , intl_loc1_num STRING
+    , intl_loc2_num STRING
+    , intl_loc_check_digit_num STRING
+    , data_comm_line_num STRING
+    , data_medium_exchange_flag STRING
+    , isr_subscriber_num STRING
+    , fiscal_address_account_num STRING
+    , withhold_tax_person_birth_date STRING
+    , withhold_tax_person_birth_place_name STRING
+    , one_time_account_ref_account_group_name STRING
+    , alt_payee_account_num STRING
+    , vendor_sub_range_relevant_flag STRING
+    , search_term1_name STRING
+    , search_term2_name STRING
+    , search_term3_name STRING
+    , factory_cal_code STRING
+    , withhold_tax_person_sex_code STRING
+    , central_impose_purchase_block_flag STRING
+    , block_function_code STRING
+    , central_posting_block_flag STRING
+    , equalzn_tax_bus_partner_subject_flag STRING
+    , natural_person_flag STRING
+    , liable_for_vat_flag STRING
+    , telebox_num STRING
+    , second_phone_num STRING
+    , teletex_num STRING
+    , plant_level_relevant_flag STRING
+    , alt_payee_allow_flag STRING
+    , minority_ind_code STRING
+    , title1_name STRING
+    , data_medium_exchange_instr_code STRING
+    , record_create_date STRING
+    , object_create_name STRING
+    , group_code STRING
+    , customer_num STRING
+    , carr4_name STRING
+    , telex_num STRING
+    , vat_registn_num STRING
+    , po_box_city_name STRING
+    , payment_block_code STRING
+    , std_carr_access_code STRING
+) USING DELTA
+COMMENT 'Vendor Master Data'
+LOCATION '$location/vendor_na_dim';
