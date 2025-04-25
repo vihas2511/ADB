@@ -1,0 +1,229 @@
+SELECT
+  -- Level 0: selected customer
+  CASE 
+    WHEN ch.cust_orig_lvl = 1  THEN ch.cust_1_id
+    WHEN ch.cust_orig_lvl = 2  THEN ch.cust_2_id
+    WHEN ch.cust_orig_lvl = 3  THEN ch.cust_3_id
+    WHEN ch.cust_orig_lvl = 4  THEN ch.cust_4_id
+    WHEN ch.cust_orig_lvl = 5  THEN ch.cust_5_id
+    WHEN ch.cust_orig_lvl = 6  THEN ch.cust_6_id
+    WHEN ch.cust_orig_lvl = 7  THEN ch.cust_7_id
+    WHEN ch.cust_orig_lvl = 8  THEN ch.cust_8_id
+    WHEN ch.cust_orig_lvl = 9  THEN ch.cust_9_id
+    WHEN ch.cust_orig_lvl = 10 THEN ch.cust_10_id
+    WHEN ch.cust_orig_lvl = 11 THEN ch.cust_11_id
+    WHEN ch.cust_orig_lvl = 12 THEN ch.cust_12_id
+    ELSE ''
+  END AS customer_id,
+
+  -- Level 1
+  ch.cust_1_id   AS l1_global_lvl,
+  ch.cust_1_name AS l1_global_name,
+
+  -- Level 2
+  ch.cust_2_id   AS l2_key_customer_group_lvl,
+  ch.cust_2_name AS l2_key_customer_group_name,
+
+  -- Level 3 (with optional grouping)
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 3 THEN sub.new_group
+    WHEN ch.cust_orig_lvl >= 3 THEN ch.cust_3_id
+    ELSE ''
+  END AS l3_vary1_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 3 THEN sub.new_group
+    WHEN ch.cust_orig_lvl >= 3 THEN ch.cust_3_name
+    ELSE ''
+  END AS l3_vary1_name,
+
+  -- Level 4
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 4 THEN ch.cust_3_id
+    WHEN ch.cust_orig_lvl >= 4 THEN ch.cust_4_id
+    ELSE ''
+  END AS l4_vary2_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 4 THEN ch.cust_3_name
+    WHEN ch.cust_orig_lvl >= 4 THEN ch.cust_4_name
+    ELSE ''
+  END AS l4_vary2_name,
+
+  -- Level 5
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 5 THEN ch.cust_4_id
+    WHEN ch.cust_orig_lvl >= 5 THEN ch.cust_5_id
+    ELSE ''
+  END AS l5_country_top_account_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 5 THEN ch.cust_4_name
+    WHEN ch.cust_orig_lvl >= 5 THEN ch.cust_5_name
+    ELSE ''
+  END AS l5_country_top_account_name,
+
+  -- Level 6
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 6 THEN ch.cust_5_id
+    WHEN ch.cust_orig_lvl >= 6 THEN ch.cust_6_id
+    ELSE ''
+  END AS l6_vary6_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 6 THEN ch.cust_5_name
+    WHEN ch.cust_orig_lvl >= 6 THEN ch.cust_6_name
+    ELSE ''
+  END AS l6_vary6_name,
+
+  -- Level 7
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 7 THEN ch.cust_6_id
+    WHEN ch.cust_orig_lvl >= 7 THEN ch.cust_7_id
+    ELSE ''
+  END AS l7_intrmdt_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 7 THEN ch.cust_6_name
+    WHEN ch.cust_orig_lvl >= 7 THEN ch.cust_7_name
+    ELSE ''
+  END AS l7_intrmdt_name,
+
+  -- Level 8
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 8 THEN ch.cust_7_id
+    WHEN ch.cust_orig_lvl >= 8 THEN ch.cust_8_id
+    ELSE ''
+  END AS l8_intrmdt2_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 8 THEN ch.cust_7_name
+    WHEN ch.cust_orig_lvl >= 8 THEN ch.cust_8_name
+    ELSE ''
+  END AS l8_intrmdt2_name,
+
+  -- Level 9
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 9 THEN ch.cust_8_id
+    WHEN ch.cust_orig_lvl >= 9 THEN ch.cust_9_id
+    ELSE ''
+  END AS l9_intrmdt3_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 9 THEN ch.cust_8_name
+    WHEN ch.cust_orig_lvl >= 9 THEN ch.cust_9_name
+    ELSE ''
+  END AS l9_intrmdt3_name,
+
+  -- Level 10
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 10 THEN ch.cust_9_id
+    WHEN ch.cust_orig_lvl >= 10 THEN ch.cust_10_id
+    ELSE ''
+  END AS l10_intrmdt4_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 10 THEN ch.cust_9_name
+    WHEN ch.cust_orig_lvl >= 10 THEN ch.cust_10_name
+    ELSE ''
+  END AS l10_intrmdt4_name,
+
+  -- Level 11
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 11 THEN ch.cust_10_id
+    WHEN ch.cust_orig_lvl >= 11 THEN ch.cust_11_id
+    ELSE ''
+  END AS l11_intrmdt5_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 11 THEN ch.cust_10_name
+    WHEN ch.cust_orig_lvl >= 11 THEN ch.cust_11_name
+    ELSE ''
+  END AS l11_intrmdt5_name,
+
+  -- Level 12
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 12 THEN ch.cust_11_id
+    WHEN ch.cust_orig_lvl >= 12 THEN ch.cust_12_id
+    ELSE ''
+  END AS l12_ship_to_lvl,
+  CASE 
+    WHEN sub.new_group IS NOT NULL AND ch.cust_orig_lvl >= 12 THEN ch.cust_11_name
+    WHEN ch.cust_orig_lvl >= 12 THEN ch.cust_12_name
+    ELSE ''
+  END AS l12_ship_to_name
+
+FROM (
+  -- derive cust_orig_lvl and base hierarchy columns
+  SELECT
+    cust_1_id,
+    cust_1_name,
+    cust_2_id,
+    cust_2_name,
+    cust_3_id,
+    cust_3_name,
+    cust_4_id,
+    cust_4_name,
+    cust_5_id,
+    cust_5_name,
+    cust_6_id,
+    cust_6_name,
+    cust_7_id,
+    cust_7_name,
+    cust_8_id,
+    cust_8_name,
+    cust_9_id,
+    cust_9_name,
+    cust_10_id,
+    cust_10_name,
+    cust_11_id,
+    cust_11_name,
+    cust_12_id,
+    cust_12_name,
+    CASE
+      WHEN cust_2_id IN ('9900000002','9900000007') THEN cust_orig_lvl + 1
+      ELSE cust_orig_lvl
+    END AS cust_orig_lvl
+  FROM ${hivevar:dbRds}.cust_hier_dim
+  WHERE cust_hier_id = '656'
+    AND curr_ind     = 'Y'
+    AND cust_1_id    = '9900000001'
+) ch
+LEFT JOIN (
+  -- compute grouping buckets for level-3 children
+  SELECT
+    b.cust_2_id,
+    b.cust_3_id,
+    CASE
+      WHEN b.rn <  5001 THEN CONCAT(cust_2_id,'-LIST-01')
+      WHEN b.rn <= 10000 THEN CONCAT(cust_2_id,'-LIST-02')
+      WHEN b.rn <= 15000 THEN CONCAT(cust_2_id,'-LIST-03')
+      WHEN b.rn <= 20000 THEN CONCAT(cust_2_id,'-LIST-04')
+      WHEN b.rn <= 25000 THEN CONCAT(cust_2_id,'-LIST-05')
+      WHEN b.rn <= 30000 THEN CONCAT(cust_2_id,'-LIST-06')
+      WHEN b.rn <= 35000 THEN CONCAT(cust_2_id,'-LIST-07')
+      WHEN b.rn <= 40000 THEN CONCAT(cust_2_id,'-LIST-08')
+      WHEN b.rn <= 45000 THEN CONCAT(cust_2_id,'-LIST-09')
+      WHEN b.rn <= 50000 THEN CONCAT(cust_2_id,'-LIST-10')
+      WHEN b.rn <= 55000 THEN CONCAT(cust_2_id,'-LIST-11')
+      ELSE 'LIST-NEW'
+    END AS new_group
+  FROM (
+    SELECT
+      cust_2_id,
+      cust_3_id,
+      ROW_NUMBER() OVER (
+        PARTITION BY cust_2_id
+        ORDER BY cust_3_name, cust_3_id
+      ) AS rn
+    FROM (
+      SELECT
+        cust_2_id,
+        cust_3_id,
+        cust_3_name
+      FROM ${hivevar:dbRds}.cust_hier_dim
+      WHERE cust_hier_id = '656'
+        AND curr_ind      = 'Y'
+        AND cust_1_id     = '9900000001'
+        AND cust_2_id IN ('9900000002','9900000007')
+        AND cust_3_id NOT IN (
+          '9900000007','2000373917','2001338173',
+          '2002178438','2000822739','2002217420','0063009359'
+        )
+      GROUP BY cust_2_id, cust_3_id, cust_3_name
+    ) a
+  ) b
+) sub
+  ON ch.cust_2_id = sub.cust_2_id
+ AND ch.cust_3_id = sub.cust_3_id;
